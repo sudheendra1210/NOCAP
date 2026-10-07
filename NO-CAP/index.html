@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NO CAP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Averia+Serif+Libre:wght@400;700&family=Lilita+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <a class="brand" href="#top" aria-label="NO CAP home"><img src="assets/logo.png" alt="NO CAP"></a>
+  <a class="btn" href="#about">What is NOCAP?</a>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="bar" style="width:140px;left:-20px;top:30%"></div>
+    <div class="bar" style="width:100px;left:10px;top:36%"></div>
+    <div class="bar" style="width:140px;right:-20px;top:42%"></div>
+    <div class="bar" style="width:100px;right:10px;top:48%"></div>
+
+    <div class="scene">
+      <div class="disc"></div>
+      <div class="shadow"></div>
+      <div id="gl" role="img" aria-label="Rotating 3D dancer logo"></div>
+    </div>
+
+    <div class="timer" id="timer" role="timer" aria-label="Countdown to NOCAP">
+      <div class="cell"><b data-u="m">00</b><span>MONTHS</span></div>
+      <div class="cell"><b data-u="d">00</b><span>DAYS</span></div>
+      <div class="cell"><b data-u="h">00</b><span>HOURS</span></div>
+      <div class="cell"><b data-u="i">00</b><span>MINS</span></div>
+      <div class="cell"><b data-u="s">00</b><span>SECS</span></div>
+    </div>
+
+    <div class="copy">
+      <p class="kicker">WHERE THE BEAT MEETS THE BOLD.</p>
+      <h1>NoCap.</h1>
+      <p class="lede">A national hip-hop and dance event. Coming this February.</p>
+    </div>
+  </section>
+
+  <section class="about" id="about">
+    <div class="wrap">
+      <div>
+        <h2>What is NOCAP?</h2>
+        <p>NOCAP is a national Indian hip-hop and dance event. It is a stage for expression, a gathering of crews, and a shared reason to turn the volume up.</p>
+        <div class="chips"><span>Dance</span><span>Culture</span><span>Community</span><span>Competition</span><span>Expression</span></div>
+      </div>
+      <div class="q" aria-hidden="true">??</div>
+    </div>
+  </section>
+</main>
+<footer>NOCAP / DANCE. CULTURE. COMMUNITY.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
