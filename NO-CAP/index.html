@@ -12,8 +12,106 @@
 <body>
 <header>
   <a class="brand" href="#top" aria-label="NO CAP home"><img src="assets/logo.png" alt="NO CAP"></a>
-  <a class="btn" href="#about">What is NOCAP?</a>
+  <div class="header-actions">
+    <a class="btn" href="#about">What is NOCAP?</a>
+    <button class="btn" id="auth-open" type="button">Login / Sign up</button>
+    <div class="profile-control" id="auth-profile-control" hidden>
+      <button class="profile-icon" id="auth-profile" type="button" aria-label="Open profile menu" aria-expanded="false" aria-controls="auth-profile-dropdown" title="Profile">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path></svg>
+      </button>
+      <div class="profile-dropdown" id="auth-profile-dropdown" hidden>
+        <p class="profile-identity" id="auth-profile-identity">NO CAP member</p>
+        <p class="profile-email" id="auth-profile-email" hidden></p>
+        <button class="profile-logout" id="auth-sign-out" type="button">LOG OUT</button>
+      </div>
+    </div>
+  </div>
 </header>
+
+<dialog class="auth-dialog" id="auth-dialog" aria-labelledby="auth-title">
+  <section class="auth-panel">
+    <button class="auth-close" id="auth-close" type="button" aria-label="Close sign in">×</button>
+    <p class="auth-eyebrow">NO CAP</p>
+    <h2 class="auth-title" id="auth-title">BACK IN THE CIRCLE.</h2>
+    <p class="auth-message" id="auth-message" role="status" aria-live="polite" hidden></p>
+
+    <section class="auth-view" data-auth-view="sign-in">
+      <button class="auth-google" type="button" data-auth-google hidden>Continue with Google</button>
+      <p class="auth-divider" data-auth-google-divider hidden><span>OR</span></p>
+      <form class="auth-form" id="sign-in-form">
+        <label for="sign-in-email">Email</label>
+        <input id="sign-in-email" name="email" type="email" autocomplete="email" required>
+        <label for="sign-in-password">Password</label>
+        <input id="sign-in-password" name="password" type="password" autocomplete="current-password" required>
+        <button class="btn auth-submit" type="submit">LOG IN</button>
+      </form>
+      <button class="auth-link" type="button" data-auth-view-link="reset-request">Forgot password?</button>
+      <p class="auth-switch">New to the circle? <button class="auth-link" type="button" data-auth-view-link="sign-up">Create an account</button></p>
+    </section>
+
+    <section class="auth-view" data-auth-view="sign-up" hidden>
+      <button class="auth-google" type="button" data-auth-google hidden>Continue with Google</button>
+      <p class="auth-divider" data-auth-google-divider hidden><span>OR</span></p>
+      <form class="auth-form" id="sign-up-form">
+        <div id="sign-up-username-field">
+          <label for="sign-up-username">Username</label>
+          <input id="sign-up-username" name="username" type="text" autocomplete="username" required>
+        </div>
+        <label for="sign-up-email">Email</label>
+        <input id="sign-up-email" name="email" type="email" autocomplete="email" required>
+        <label for="sign-up-password">Password</label>
+        <input id="sign-up-password" name="password" type="password" autocomplete="new-password" required>
+        <label for="sign-up-confirm-password">Confirm password</label>
+        <input id="sign-up-confirm-password" name="confirm-password" type="password" autocomplete="new-password" required>
+        <button class="btn auth-submit" type="submit">CREATE ACCOUNT</button>
+      </form>
+      <p class="auth-switch">Already in the circle? <button class="auth-link" type="button" data-auth-view-link="sign-in">Log in</button></p>
+    </section>
+
+    <section class="auth-view" data-auth-view="oauth-sign-up" hidden>
+      <p class="auth-description">One more detail before you join the circle.</p>
+      <form class="auth-form" id="oauth-sign-up-form">
+        <label for="oauth-sign-up-username">Username</label>
+        <input id="oauth-sign-up-username" name="username" type="text" autocomplete="username" required>
+        <button class="btn auth-submit" type="submit">CONTINUE</button>
+      </form>
+    </section>
+
+    <section class="auth-view" data-auth-view="verify-email" hidden>
+      <p class="auth-description" id="verify-email-description">Enter the verification code sent to your email.</p>
+      <form class="auth-form" id="verify-email-form">
+        <label for="verify-email-code">Email verification code</label>
+        <input id="verify-email-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" required>
+        <button class="btn auth-submit" type="submit">VERIFY EMAIL</button>
+      </form>
+      <button class="auth-link" id="resend-verification" type="button">Send a new code</button>
+    </section>
+
+    <section class="auth-view" data-auth-view="reset-request" hidden>
+      <p class="auth-description">Enter your email and we’ll send a password reset code.</p>
+      <form class="auth-form" id="reset-request-form">
+        <label for="reset-email">Email</label>
+        <input id="reset-email" name="email" type="email" autocomplete="email" required>
+        <button class="btn auth-submit" type="submit">SEND RESET CODE</button>
+      </form>
+      <button class="auth-link" type="button" data-auth-view-link="sign-in">Back to log in</button>
+    </section>
+
+    <section class="auth-view" data-auth-view="reset-code" hidden>
+      <p class="auth-description">Enter the code from your email and choose a new password.</p>
+      <form class="auth-form" id="reset-code-form">
+        <label for="reset-code">Password reset code</label>
+        <input id="reset-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" required>
+        <label for="reset-password">New password</label>
+        <input id="reset-password" name="password" type="password" autocomplete="new-password" required>
+        <label for="reset-confirm-password">Confirm new password</label>
+        <input id="reset-confirm-password" name="confirm-password" type="password" autocomplete="new-password" required>
+        <button class="btn auth-submit" type="submit">RESET PASSWORD</button>
+      </form>
+      <button class="auth-link" type="button" data-auth-view-link="reset-request">Send another code</button>
+    </section>
+  </section>
+</dialog>
 
 <main id="top">
   <section class="hero">
@@ -60,8 +158,8 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="script.js"></script>
 <script type="module">
-  import { initializeClerk } from "./auth.js";
-  initializeClerk().catch(console.error);
+  import { initializeAuthUI } from "./auth-ui.js";
+  initializeAuthUI().catch(console.error);
 </script>
 </body>
 </html>

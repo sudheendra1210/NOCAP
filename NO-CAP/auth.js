@@ -9,6 +9,10 @@ if (!publishableKey) {
 
 export const clerk = new Clerk(publishableKey);
 
+export function getClerkSettings() {
+  return clerk.__internal_environment?.userSettings ?? null;
+}
+
 export async function initializeClerk() {
   await clerk.load();
   console.log("Clerk initialized successfully.");
