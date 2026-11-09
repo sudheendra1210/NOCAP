@@ -1,3 +1,5 @@
+import MODEL_URL from "./assets/dancer.glb?url";
+
 // ===== CHANGE THIS when the date is final (IST = +05:30) =====
 const EVENT_DATE = new Date("2027-02-15T18:00:00+05:30");
 // =============================================================
@@ -23,7 +25,6 @@ function tick() {
 tick(); setInterval(tick, 1000);
 
 // ---- 3D dancer ----
-const MODEL_URL = "assets/dancer.glb";
 const box = document.getElementById("gl");
 function fallback() {
   const im = document.createElement("img");

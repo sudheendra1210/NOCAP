@@ -1,8 +1,22 @@
 import { clerk, getClerkSettings, initializeClerk } from "./auth.js";
 
+const PENDING_AUTH_ACTION_KEY = "nocap-pending-auth-action-v1";
+const PENDING_GUESS_DRAFT_KEY = "nocap-pending-guess-draft-v1";
+let guessAuthenticationHandler = null;
+let queuedGuessAuthenticationRequest = false;
+let queuedGuessAuthenticationDraft = "";
+
+document.addEventListener("nocap:request-guess-auth", (event) => {
+  const detail = event.detail || {};
+  if (guessAuthenticationHandler) guessAuthenticationHandler(detail);
+  else {
+    queuedGuessAuthenticationRequest = true;
+    queuedGuessAuthenticationDraft = typeof detail.draft === "string" ? detail.draft : "";
+  }
+});
+
 const landingUrl = () => {
   const url = new URL(window.location.href);
-  url.hash = "";
   for (const key of [...url.searchParams.keys()]) {
     if (key.startsWith("__clerk_")) url.searchParams.delete(key);
   }
@@ -18,7 +32,52 @@ const clerkMessage = (error, fallback) => {
 };
 
 export async function initializeAuthUI() {
-  await initializeClerk();
+  let clerkInitializationError = null;
+  try {
+    await initializeClerk();
+  } catch (error) {
+    clerkInitializationError = error;
+    console.error("Clerk authentication could not initialize.", error);
+  }
+
+  if (!clerk || clerkInitializationError) {
+    const dialog = document.querySelector("#auth-dialog");
+    const loginButton = document.querySelector("#auth-open");
+    const closeButton = document.querySelector("#auth-close");
+    const title = document.querySelector("#auth-title");
+    const message = document.querySelector("#auth-message");
+    const views = [...document.querySelectorAll("[data-auth-view]")];
+    const unavailableMessage = !clerk
+      ? "Clerk is not configured or its publishable key is invalid. Add a valid VITE_CLERK_PUBLISHABLE_KEY to .env.local, then restart Vite."
+      : "Authentication could not start. Check your connection and reload the page.";
+
+    function showUnavailable() {
+      for (const view of views) view.hidden = true;
+      title.textContent = "SIGN IN UNAVAILABLE.";
+      message.textContent = unavailableMessage;
+      message.dataset.state = "error";
+      message.setAttribute("role", "alert");
+      message.hidden = false;
+      if (!dialog.open) dialog.showModal();
+    }
+
+    guessAuthenticationHandler = showUnavailable;
+    loginButton.addEventListener("click", showUnavailable);
+    closeButton.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener("close", () => {
+      document.dispatchEvent(new CustomEvent("nocap:guess-auth-cancelled"));
+    });
+
+    if (queuedGuessAuthenticationRequest) {
+      queuedGuessAuthenticationRequest = false;
+      queuedGuessAuthenticationDraft = "";
+      showUnavailable();
+    }
+    return;
+  }
 
   const dialog = document.querySelector("#auth-dialog");
   const loginButton = document.querySelector("#auth-open");
@@ -64,6 +123,69 @@ export async function initializeAuthUI() {
   let pendingOAuthSignUp = null;
   let pendingEmailPasswordSignUp = null;
   let currentEmailStrategy = "email_code";
+  let pendingGuessActionInMemory = false;
+  let pendingGuessDraftInMemory = "";
+
+  function rememberPendingGuessAction(draft = "") {
+    pendingGuessActionInMemory = true;
+    pendingGuessDraftInMemory = draft;
+    try {
+      window.localStorage.setItem(PENDING_AUTH_ACTION_KEY, "open-guess-form");
+      if (draft) window.localStorage.setItem(PENDING_GUESS_DRAFT_KEY, draft);
+      else window.localStorage.removeItem(PENDING_GUESS_DRAFT_KEY);
+    } catch {
+      // Keep the action in memory if browser storage is unavailable.
+    }
+  }
+
+  function readPendingGuessDraft() {
+    if (pendingGuessDraftInMemory) return pendingGuessDraftInMemory;
+    try {
+      return window.localStorage.getItem(PENDING_GUESS_DRAFT_KEY) || "";
+    } catch {
+      return "";
+    }
+  }
+
+  function hasPendingGuessAction() {
+    if (pendingGuessActionInMemory) return true;
+    try {
+      return window.localStorage.getItem(PENDING_AUTH_ACTION_KEY) === "open-guess-form";
+    } catch {
+      return false;
+    }
+  }
+
+  function clearPendingGuessAction() {
+    pendingGuessActionInMemory = false;
+    pendingGuessDraftInMemory = "";
+    try {
+      window.localStorage.removeItem(PENDING_AUTH_ACTION_KEY);
+      window.localStorage.removeItem(PENDING_GUESS_DRAFT_KEY);
+    } catch {
+      // Storage may be disabled; the in-memory value is still cleared.
+    }
+  }
+
+  function resumePendingGuessAction() {
+    if (!clerk.session || !hasPendingGuessAction()) return false;
+    const draft = readPendingGuessDraft();
+    clearPendingGuessAction();
+    document.dispatchEvent(new CustomEvent("nocap:open-guess-form", { detail: { draft } }));
+    return true;
+  }
+
+  function requestGuessAuthentication({ draft = "" } = {}) {
+    if (clerk.session) {
+      document.dispatchEvent(new CustomEvent("nocap:open-guess-form", { detail: { draft } }));
+      return;
+    }
+
+    rememberPendingGuessAction(draft);
+    showView("sign-in");
+    if (!dialog.open) dialog.showModal();
+    document.querySelector("#sign-in-email").focus();
+  }
 
   for (const button of googleButtons) button.hidden = !googleEnabled;
   for (const divider of googleDividers) divider.hidden = !googleEnabled;
@@ -90,10 +212,18 @@ export async function initializeAuthUI() {
     showMessage();
   }
 
+  guessAuthenticationHandler = (detail) => requestGuessAuthentication(detail);
+  if (queuedGuessAuthenticationRequest) {
+    queuedGuessAuthenticationRequest = false;
+    requestGuessAuthentication({ draft: queuedGuessAuthenticationDraft });
+    queuedGuessAuthenticationDraft = "";
+  }
+
   function setProfileMenuOpen(open) {
     const shouldOpen = Boolean(open && !profileControl.hidden);
     profileDropdown.hidden = !shouldOpen;
     profileButton.setAttribute("aria-expanded", String(shouldOpen));
+    profileButton.setAttribute("aria-label", shouldOpen ? "Close profile menu" : "Open profile menu");
   }
 
   function renderHeader(state = {}) {
@@ -110,14 +240,22 @@ export async function initializeAuthUI() {
     const email = user?.primaryEmailAddress?.emailAddress || "";
     profileEmail.textContent = email;
     profileEmail.hidden = !email;
+    document.dispatchEvent(new CustomEvent("nocap:auth-state", {
+      detail: {
+        signedIn,
+        userId: signedIn ? user?.id || session?.userId || null : null,
+        username: signedIn && typeof user?.username === "string" ? user.username.trim() : "",
+      },
+    }));
   }
 
   function finishOnLanding() {
+    const resumeGuess = Boolean(clerk.session && hasPendingGuessAction());
     renderHeader();
     if (dialog.open) dialog.close();
     history.replaceState(null, "", landingUrl());
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    if (clerk.session) profileButton.focus();
+    if (resumeGuess) resumePendingGuessAction();
+    else if (clerk.session) profileButton.focus();
   }
 
   async function activateSession(sessionId) {
@@ -256,9 +394,20 @@ export async function initializeAuthUI() {
   });
 
   closeButton.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("close", () => {
+    if (!clerk.session) {
+      clearPendingGuessAction();
+      document.dispatchEvent(new CustomEvent("nocap:guess-auth-cancelled"));
+    }
+  });
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
   });
+  window.addEventListener("popstate", () => {
+    if (dialog.open) dialog.close();
+  });
+
+  document.addEventListener("nocap:close-profile-menu", () => setProfileMenuOpen(false));
 
   for (const link of document.querySelectorAll("[data-auth-view-link]")) {
     link.addEventListener("click", () => showView(link.dataset.authViewLink));
@@ -267,7 +416,7 @@ export async function initializeAuthUI() {
   profileButton.addEventListener("click", () => {
     const shouldOpen = profileDropdown.hidden;
     setProfileMenuOpen(shouldOpen);
-    if (shouldOpen) signOutButton.focus();
+    if (shouldOpen) document.querySelector("[data-profile-prototype]").focus();
   });
 
   document.addEventListener("click", (event) => {
@@ -550,4 +699,6 @@ export async function initializeAuthUI() {
       showMessage(clerkMessage(error, "Google sign-in could not be completed. Please try again."), "error");
     }
   }
+
+  if (clerk.session) resumePendingGuessAction();
 }

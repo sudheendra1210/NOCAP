@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+  if (window.location.hash === "#community") {
+    document.documentElement.classList.add("route-pending");
+  }
+</script>
 <title>NO CAP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +18,8 @@
 <header>
   <a class="brand" href="#top" aria-label="NO CAP home"><img src="assets/logo.png" alt="NO CAP"></a>
   <div class="header-actions">
-    <a class="btn" href="#about">What is NOCAP?</a>
+    <a class="btn" href="#top">Home</a>
+    <a class="btn" href="#community">Theories</a>
     <button class="btn" id="auth-open" type="button">Login / Sign up</button>
     <div class="profile-control" id="auth-profile-control" hidden>
       <button class="profile-icon" id="auth-profile" type="button" aria-label="Open profile menu" aria-expanded="false" aria-controls="auth-profile-dropdown" title="Profile">
@@ -22,6 +28,8 @@
       <div class="profile-dropdown" id="auth-profile-dropdown" hidden>
         <p class="profile-identity" id="auth-profile-identity">NO CAP member</p>
         <p class="profile-email" id="auth-profile-email" hidden></p>
+        <button class="profile-action" type="button" data-profile-prototype="rewards">Your Rewards</button>
+        <button class="profile-action" type="button" data-profile-prototype="settings">Profile Settings</button>
         <button class="profile-logout" id="auth-sign-out" type="button">LOG OUT</button>
       </div>
     </div>
@@ -113,6 +121,34 @@
   </section>
 </dialog>
 
+<dialog class="auth-dialog" id="guess-dialog" aria-labelledby="guess-title" aria-describedby="guess-description">
+  <section class="auth-panel">
+    <button class="auth-close" id="guess-close" type="button" aria-label="Close guess form">×</button>
+    <p class="auth-eyebrow">NO CAP COMMUNITY</p>
+    <h2 class="auth-title" id="guess-title">DROP A THEORY.</h2>
+    <p class="auth-description" id="guess-description">Keep it short. The whole internet does not need your manifesto.</p>
+    <p class="auth-message guess-feedback" id="guess-feedback" role="status" aria-live="polite" hidden></p>
+    <form class="auth-form" id="guess-form" novalidate>
+      <label for="guess-input">Your theory</label>
+      <textarea class="guess-textarea" id="guess-input" name="guess" rows="4" maxlength="150" placeholder="What's your theory? Don't overthink it… 👀" aria-describedby="guess-counter guess-error" required></textarea>
+      <p class="guess-counter" id="guess-counter">0 / 150</p>
+      <p class="guess-error" id="guess-error" role="alert" hidden></p>
+      <button class="btn auth-submit" id="guess-submit" type="submit">DROP YOUR GUESS</button>
+      <button class="auth-link" id="guess-cancel" type="button">Cancel</button>
+    </form>
+  </section>
+</dialog>
+
+<dialog class="auth-dialog" id="profile-prototype-dialog" aria-labelledby="profile-prototype-title" aria-describedby="profile-prototype-copy">
+  <section class="auth-panel">
+    <button class="auth-close" id="profile-prototype-close" type="button" aria-label="Close prototype panel">×</button>
+    <p class="auth-eyebrow">PROTOTYPE</p>
+    <h2 class="auth-title" id="profile-prototype-title">YOUR REWARDS</h2>
+    <p class="auth-description" id="profile-prototype-copy">This prototype panel will show your rewards here in a future phase.</p>
+    <button class="btn auth-submit" id="profile-prototype-done" type="button">GOT IT</button>
+  </section>
+</dialog>
+
 <main id="top">
   <section class="hero">
     <div class="bar" style="width:140px;left:-20px;top:30%"></div>
@@ -123,7 +159,7 @@
     <div class="scene">
       <div class="disc"></div>
       <div class="shadow"></div>
-      <div id="gl" role="img" aria-label="Rotating 3D dancer logo"></div>
+      <div id="gl" role="img" aria-label="A rotating 3D figure"></div>
     </div>
 
     <div class="timer" id="timer" role="timer" aria-label="Countdown to NOCAP">
@@ -135,30 +171,103 @@
     </div>
 
     <div class="copy">
-      <p class="kicker">WHERE THE BEAT MEETS THE BOLD.</p>
+      <p class="kicker">SOMETHING IS ON THE WAY.</p>
       <h1>NoCap.</h1>
-      <p class="lede">A national hip-hop and dance event. Coming this February.</p>
+      <p class="lede">Coming this February.</p>
     </div>
   </section>
 
-  <section class="about" id="about">
-    <div class="wrap">
-      <div>
-        <h2>What is NOCAP?</h2>
-        <p>NOCAP is a national Indian hip-hop and dance event. It is a stage for expression, a gathering of crews, and a shared reason to turn the volume up.</p>
-        <div class="chips"><span>Dance</span><span>Culture</span><span>Community</span><span>Competition</span><span>Expression</span></div>
+  <section class="mystery" id="introduction" aria-labelledby="mystery-title">
+    <div class="mystery-wrap">
+      <p class="kicker">YOU'VE HEARD THE NAME.</p>
+      <h2 id="mystery-title">BUT WHAT IS NO CAP?</h2>
+      <p>Everyone's got a theory. What's yours?</p>
+      <button class="btn mystery-cta" id="make-guess" type="button">MAKE A GUESS</button>
+    </div>
+  </section>
+
+  <section class="community" id="community" aria-labelledby="community-title">
+    <div class="community-wrap">
+      <form class="community-guess-form" id="community-guess-form" novalidate>
+        <label class="visually-hidden" for="guess-prompt">What's your theory?</label>
+        <textarea class="guess-prompt" id="guess-prompt" name="community-guess" rows="2" maxlength="150" placeholder="What's your theory? Don't overthink it… 👀" aria-describedby="community-guess-counter community-guess-error" required></textarea>
+        <div class="community-guess-actions">
+          <p class="guess-counter" id="community-guess-counter">0 / 150</p>
+          <button class="btn community-guess-submit" type="submit">DROP YOUR GUESS</button>
+        </div>
+        <p class="guess-error" id="community-guess-error" role="alert" hidden></p>
+        <p class="guess-success" id="community-guess-success" role="status" aria-live="polite" hidden></p>
+      </form>
+      <div class="community-heading">
+        <h2 id="community-title">THE WORD ON THE STREET</h2>
+        <p>Theories are coming in. What do you think?</p>
+        <p class="community-note" id="theory-status" role="status" aria-live="polite">Loading community theories…</p>
       </div>
-      <div class="q" aria-hidden="true">??</div>
+      <div class="guess-grid" id="guess-grid"></div>
+      <p class="guess-empty" id="guess-empty" hidden>No theories yet. Be the first to drop one.</p>
     </div>
   </section>
-</main>
-<footer>NOCAP / DANCE. CULTURE. COMMUNITY.</footer>
 
+  <div class="stall-gallery-grid">
+    <section class="stall-gallery" id="curiosity-stall" aria-labelledby="curiosity-stall-title">
+      <div class="stall-gallery-wrap">
+        <p class="kicker">PAST WEEKS</p>
+        <h2 id="curiosity-stall-title">CURIOSITY STALL</h2>
+        <div class="stall-photo-grid">
+          <button class="stall-photo" type="button" data-gallery-photo data-rank="Q" data-caption="Temporary slideshow preview" aria-label="Open temporary slideshow preview">
+            <img src="./assets/stall-gallery-preview.png" alt="A fan of playing cards, shown as a temporary slideshow preview" />
+          </button>
+          <p class="stall-gallery-empty">Tap the sample photo to preview. Stall photos coming soon.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="stall-gallery stall-gallery--exchange" id="exchange-stall" aria-labelledby="exchange-stall-title">
+      <div class="stall-gallery-wrap">
+        <p class="kicker">PAST WEEKS</p>
+        <h2 id="exchange-stall-title">EXCHANGE STALL</h2>
+        <div class="stall-photo-grid">
+          <p class="stall-gallery-empty">Photos coming soon.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer>NO CAP / EVERYONE'S GOT A THEORY.</footer>
+
+<dialog class="photo-lightbox" id="photo-lightbox" aria-label="Stall photo slideshow">
+  <button class="photo-lightbox-close" id="photo-lightbox-close" type="button" aria-label="Close slideshow">&times;</button>
+  <div class="photo-lightbox-layout">
+    <button class="photo-lightbox-arrow" id="photo-lightbox-previous" type="button" aria-label="Previous photo">&#8249;</button>
+    <figure class="photo-lightbox-figure">
+      <img id="photo-lightbox-image" alt="" />
+      <figcaption id="photo-lightbox-caption"></figcaption>
+      <p class="photo-lightbox-count" id="photo-lightbox-count" aria-live="polite"></p>
+    </figure>
+    <button class="photo-lightbox-arrow" id="photo-lightbox-next" type="button" aria-label="Next photo">&#8250;</button>
+  </div>
+</dialog>
+
+<script>
+  const routeRoot = document.documentElement;
+  if (routeRoot.classList.contains("route-pending")) {
+    const community = document.getElementById("community");
+    if (window.location.hash === "#community" && community) {
+      const scrollPadding = Number.parseFloat(getComputedStyle(routeRoot).scrollPaddingTop) || 0;
+      const offset = community.getBoundingClientRect().top - scrollPadding;
+      if (Math.abs(offset) > 1) window.scrollTo(0, Math.max(0, window.scrollY + offset));
+    }
+    routeRoot.classList.remove("route-pending");
+  }
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
+<script type="module" src="photo-gallery.js"></script>
 <script type="module">
+  import { initializeCommunityUI } from "./community.js";
   import { initializeAuthUI } from "./auth-ui.js";
+  initializeCommunityUI();
   initializeAuthUI().catch(console.error);
 </script>
 </body>
